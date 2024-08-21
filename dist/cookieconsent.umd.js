@@ -73,6 +73,7 @@
      * @property {HTMLElement} _ccMain
      * @property {HTMLElement} _cmContainer
      * @property {HTMLElement} _pmContainer
+     * @property {HTMLElement} _btsContainer
      *
      * @property {HTMLElement} _cm
      * @property {HTMLElement} _cmBody
