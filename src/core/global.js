@@ -49,9 +49,11 @@ import { COOKIE_NAME, OPT_IN_MODE } from '../utils/constants';
  * @property {HTMLElement} _cmBtns
  * @property {HTMLElement} _cmBtnGroup
  * @property {HTMLElement} _cmBtnGroup2
+ * @property {HTMLElement} _cmBtnGroup3
  * @property {HTMLElement} _cmAcceptAllBtn
  * @property {HTMLElement} _cmAcceptNecessaryBtn
  * @property {HTMLElement} _cmShowPreferencesBtn
+ * @property {HTMLElement} _cmShowMyBtn
  * @property {HTMLElement} _cmFooterLinksGroup
  * @property {HTMLElement} _cmCloseIconBtn
  *

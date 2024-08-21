@@ -82,9 +82,11 @@
      * @property {HTMLElement} _cmBtns
      * @property {HTMLElement} _cmBtnGroup
      * @property {HTMLElement} _cmBtnGroup2
+     * @property {HTMLElement} _cmBtnGroup3
      * @property {HTMLElement} _cmAcceptAllBtn
      * @property {HTMLElement} _cmAcceptNecessaryBtn
      * @property {HTMLElement} _cmShowPreferencesBtn
+     * @property {HTMLElement} _cmShowMyBtn
      * @property {HTMLElement} _cmFooterLinksGroup
      * @property {HTMLElement} _cmCloseIconBtn
      *
@@ -2354,7 +2356,8 @@
             closeIconLabelData = consentModalData.closeIconLabel,
             footerData = consentModalData.footer,
             consentModalLabelValue = consentModalData.label,
-            consentModalTitleValue = consentModalData.title;
+            consentModalTitleValue = consentModalData.title,
+            showMyBtnData = 'Manage with BTS';
 
         /**
          * @param {string|string[]} [categories]
@@ -2508,6 +2511,24 @@
             dom._cmShowPreferencesBtn.firstElementChild.innerHTML = showPreferencesBtnData;
         }
 
+        {
+            if (!dom._cmShowMyBtn) {
+                dom._cmShowMyBtn = createNode(BUTTON_TAG);
+                appendChild(dom._cmShowMyBtn, createFocusSpan());
+                addClassCm(dom._cmShowMyBtn, 'btn');
+                addClassCm(dom._cmShowMyBtn, 'btn--secondary');
+                setAttribute(dom._cmShowMyBtn, DATA_ROLE, 'show');
+
+                addEvent(dom._cmShowMyBtn, 'mouseenter', () => {
+                    if (!state._preferencesModalExists)
+                        createPreferencesModal(api, createMainContainer);
+                });
+                addEvent(dom._cmShowMyBtn, CLICK_EVENT, showPreferences);
+            }
+
+            dom._cmShowMyBtn.firstElementChild.innerHTML = showMyBtnData;
+        }
+
         if (!dom._cmBtnGroup) {
             dom._cmBtnGroup = createNode(DIV_TAG);
             addClassCm(dom._cmBtnGroup, BTN_GROUP_CLASS);
@@ -2529,6 +2550,19 @@
                 addClassCm(dom._cmBtnGroup2, BTN_GROUP_CLASS);
                 appendChild(dom._cmBtnGroup2, dom._cmShowPreferencesBtn);
                 appendChild(dom._cmBtns, dom._cmBtnGroup2);
+            }
+        }
+
+        if (dom._cmShowMyBtn && !dom._cmBtnGroup3) {
+            dom._cmBtnGroup3 = createNode(DIV_TAG);
+
+            if ((!dom._cmAcceptNecessaryBtn || !dom._cmAcceptAllBtn)) {
+                appendChild(dom._cmBtnGroup, dom._cmShowMyBtn);
+                addClassCm(dom._cmBtnGroup, BTN_GROUP_CLASS + '--uneven');
+            }else {
+                addClassCm(dom._cmBtnGroup3, BTN_GROUP_CLASS);
+                appendChild(dom._cmBtnGroup3, dom._cmShowMyBtn);
+                appendChild(dom._cmBtns, dom._cmBtnGroup3);
             }
         }
 
