@@ -40,7 +40,7 @@ import { COOKIE_NAME, OPT_IN_MODE } from '../utils/constants';
  * @property {HTMLElement} _ccMain
  * @property {HTMLElement} _cmContainer
  * @property {HTMLElement} _pmContainer
- * @property {HTMLElement} _btsContainer
+ * @property {HTMLElement} _jmContainer
  *
  * @property {HTMLElement} _cm
  * @property {HTMLElement} _cmBody
@@ -69,6 +69,18 @@ import { COOKIE_NAME, OPT_IN_MODE } from '../utils/constants';
  * @property {HTMLElement} _pmAcceptAllBtn
  * @property {HTMLElement} _pmAcceptNecessaryBtn
  * @property {HTMLElement} _pmSavePreferencesBtn
+ * 
+ * @property {HTMLElement} _jm
+ * @property {HTMLElement} _jmHeader
+ * @property {HTMLElement} _jmTitle
+ * @property {HTMLElement} _jmCloseBtn
+ * @property {HTMLElement} _jmBody
+ * @property {HTMLElement} _jmNewBody
+ * @property {HTMLElement} _jmSections
+ * @property {HTMLElement} _jmFooter
+ * @property {HTMLElement} _jmAcceptAllBtn
+ * @property {HTMLElement} _jmAcceptNecessaryBtn
+ * @property {HTMLElement} _jmSavePreferencesBtn
  *
  * @property {Object.<string, HTMLInputElement>} _categoryCheckboxInputs
  * @property {Object.<string, ServiceToggle>} _serviceCheckboxInputs
@@ -76,6 +88,7 @@ import { COOKIE_NAME, OPT_IN_MODE } from '../utils/constants';
  * // Used to properly restore focus when modal is closed
  * @property {HTMLSpanElement} _focusSpan
  * @property {HTMLSpanElement} _pmFocusSpan
+ * @property {HTMLSpanElement} _jmFocusSpan
  */
 
 /**
@@ -190,6 +203,9 @@ export class GlobalState {
             _preferencesModalVisible : false,
             _preferencesModalExists: false,
 
+            _btsPreferencesModalVisible : false,
+            _btsPreferencesModalExists: false,
+
             /**
             * @type {HTMLElement[]}
             */
@@ -266,6 +282,7 @@ export class GlobalState {
 
             /** @type {HTMLElement[]} **/ _cmFocusableElements : [],
             /** @type {HTMLElement[]} **/ _pmFocusableElements : [],
+            /** @type {HTMLElement[]} **/ _jmFocusableElements : [],
 
             /**
             * Keep track of enabled/disabled categories

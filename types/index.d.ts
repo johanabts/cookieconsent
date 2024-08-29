@@ -573,6 +573,16 @@ declare namespace CookieConsent {
     function hidePreferences(): void
 
     /**
+     * Hide the btsPreferences.
+     */
+    function hideBtsPreferences(): void
+
+    /**
+     * Show the btsPreferences.
+     */
+    function showBtsPreferences(): void
+
+    /**
      * Accept/Reject categories.
      * @param categories Categories to accept
      * @param excludedCategories Categories to exclude

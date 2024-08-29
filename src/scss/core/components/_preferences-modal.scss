@@ -808,6 +808,30 @@ $service-toggle-knob-icon-width: 1.7px;
     }
 }
 
+.show-bts-preferences{
+    #cc-main {
+        .cc--anim{
+            .pm{
+                opacity: 1;
+                visibility: visible!important;
+            }
+
+            .pm--box{
+                transform: translateY(-50%);
+            }
+
+            .pm--bar{
+                transform: translateX(0);
+            }
+
+            .pm-overlay{
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+    }
+}
+
 /* Start: fix RTL layout */
 #cc-main.cc--rtl {
 

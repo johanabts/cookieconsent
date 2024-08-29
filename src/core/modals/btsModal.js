@@ -1,5 +1,5 @@
 import { DIV_TAG, CLICK_EVENT, ARIA_HIDDEN, BUTTON_TAG } from '../../utils/constants';
-import { addClass, appendChild, debug, getModalFocusableData, createNode, addEvent, setAttribute, addClassPm, getSvgIcon } from '../../utils/general';
+import { addClass, appendChild, getModalFocusableData, fireEvent, createNode, addEvent, setAttribute, addClassPm, getSvgIcon } from '../../utils/general';
 import { guiManager } from '../../utils/gui-manager';
 import { globalObj } from '../global';
 
@@ -8,107 +8,93 @@ import { globalObj } from '../global';
  * @param {import("../global").Api} api
  * @param {CreateMainContainer} createMainContainer
  */
-export const createMyModal = (api, createMainContainer) => {
+export const createBtsModal = (api, createMainContainer) => {
     const state =  globalObj._state;
     const dom = globalObj._dom;
 
-    const {hideMyModal} = api;
+    const {hideBtsPreferences} = api;
 
-    const titleData = 'Manage with BTS',
-        description = 'This is a custom BTS modal.';
+    const btsPreferencesModalTitle = 'BTS',
+        btsPreferencesModalDescription = 'BTS preferences center';
 
-    if(!dom._btsContainer) {
-        dom._btsContainer = createNode(DIV_TAG);
-        addClass(dom._btsContainer, 'pm-wrapper');
+    if(!dom._jmContainer) {
+        dom._jmContainer = createNode(DIV_TAG);
+        addClass(dom._jmContainer, 'pm-wrapper');
 
-    //     const mmOverlay = createNode('div');
-    //     addClass(mmOverlay, 'pm-overlay');
-    //     appendChild(dom._btsContainer, mmOverlay);
+        const btsOverlay = createNode('div');
+        addClass(btsOverlay, 'pm-overlay');
+        appendChild(dom._jmContainer, btsOverlay);
 
-    //     /**
-    //      * Hide modal when overlay is clicked
-    //     */
-    //    addEvent(mmOverlay, CLICK_EVENT, hideMyModal);
+        addEvent(btsOverlay, CLICK_EVENT, hideBtsPreferences);
 
+        dom._jm = createNode(DIV_TAG);
 
-       //My modal
+        addClass(dom._jm, 'pm');
+        setAttribute(dom._jm, 'role', 'dialog');
+        setAttribute(dom._jm, ARIA_HIDDEN, true);
+        setAttribute(dom._jm, 'aria-modal', true);
+        setAttribute(dom._jm, 'aria-labelledby', 'cm__title');
 
-       dom._mm = createNode(DIV_TAG);
-
-        addClass(dom._mm, 'pm');
-        setAttribute(dom._mm, 'role', 'dialog');
-        setAttribute(dom._mm, ARIA_HIDDEN, true);
-        setAttribute(dom._mm, 'aria-modal', true);
-        setAttribute(dom._mm, 'aria-labelledby', 'mm__title');
-
-        // Hide preferences on 'esc' key press
         addEvent(dom._htmlDom, 'keydown', (event) => {
             if (event.keyCode === 27)
-                hideMyModal();
+                hideBtsPreferences();
         }, true);
 
-        // Create header
-        dom._mmHeader = createNode(DIV_TAG);
-        addClassPm(dom._mmHeader, 'header');
+        dom._jmHeader = createNode(DIV_TAG);
+        addClassPm(dom._jmHeader, 'header');
 
-        // Create title
-        dom._mmTitle = createNode('h2');
-        addClassPm(dom._mmTitle, 'title');
-        dom._mmTitle.id = 'mm__title';
+        dom._jmTitle = createNode('h2');
+        addClassPm(dom._jmTitle, 'title');
+        dom._jmTitle.id = 'jm__title';
 
-        // Create close button
-        dom._mmCloseBtn = createNode(BUTTON_TAG);
-        addClassPm(dom._mmCloseBtn, 'close-btn');
-        setAttribute(dom._mmCloseBtn, 'aria-label', '');
-        addEvent(dom._mmCloseBtn, CLICK_EVENT, hideMyModal);
+        dom._jmCloseBtn = createNode(BUTTON_TAG);
+        addClassPm(dom._jmCloseBtn, 'close-btn');
+        setAttribute(dom._jmCloseBtn, 'aria-label', '');
+        addEvent(dom._jmCloseBtn, CLICK_EVENT, hideBtsPreferences);
 
-        //Add svg icon to close button
-        dom._mmFocusSpan = createNode('span');
-        dom._mmFocusSpan.innerHTML = getSvgIcon();
-        appendChild(dom._mmCloseBtn, dom._mmFocusSpan);
+        dom._jmFocusSpan = createNode('span');
+        dom._jmFocusSpan.innerHTML = getSvgIcon();
+        appendChild(dom._jmCloseBtn, dom._jmFocusSpan);
 
-        // Add title and close button to header
-        appendChild(dom._mmHeader, dom._mmTitle);
-        appendChild(dom._mmHeader, dom._mmCloseBtn);
+        appendChild(dom._jmHeader, dom._jmTitle);
+        appendChild(dom._jmHeader, dom._jmCloseBtn);
 
-        // Create body
-        dom._mmBody = createNode(DIV_TAG);
-        addClassPm(dom._pmBody, 'body');
+        dom._jmBody = createNode(DIV_TAG);
+        addClassPm(dom._jmBody, 'body');
 
-        appendChild(dom._mm, dom._mmHeader);
-        appendChild(dom._mm, dom._mmBody);
+        appendChild(dom._jm, dom._jmHeader);
+        appendChild(dom._jm, dom._jmBody);
 
-        appendChild(dom._btsContainer, dom._mm);
+        appendChild(dom._jmContainer, dom._jm);
     }else {
-        dom._mmNewBody = createNode(DIV_TAG);
-        addClassPm(dom._mmNewBody, 'body');
+        dom._mjNewBody = createNode(DIV_TAG);
+        addClassPm(dom._jmNewBody, 'body');
     }
 
-    // Set title
-    if (titleData) {
-        dom._mmTitle.innerHTML = titleData;
+    if (btsPreferencesModalTitle) {
+        dom._jmTitle.innerHTML = btsPreferencesModalTitle;
     }
 
-    // Set description
-    if (description) {
-        dom._mmBody.innerHTML = description;
+    if (btsPreferencesModalDescription) {
+        dom._jmBody.innerHTML = btsPreferencesModalDescription;
     }
 
-
-    if (dom._mmNewBody) {
-        dom._mm.replaceChild(dom._mmNewBody, dom._mmBody);
-        dom._mmBody = dom._mmNewBody;
+    if (dom._jmNewBody) {
+        dom._jm.replaceChild(dom._jmNewBody, dom._jmBody);
+        dom._jmBody = dom._jmNewBody;
     }
 
     guiManager(2);
 
-    if (!state._myModalExists) {
-        state._myModalExists = true;
-        debug('CookieConsent [HTML] created', 'my-modal');
+    if (!state._btsPreferencesModalExists) {
+        state._btsPreferencesModalExists = true;
+
+        fireEvent(globalObj._customEvents._onModalReady, 'bts-preferences-modal', dom._jm);
         createMainContainer(api);
-        appendChild(dom._ccMain, dom._btsContainer);
-        setTimeout(() => addClass(dom._btsContainer, 'cc--anim'), 100);
+        appendChild(dom._ccMain, dom._jmContainer);
+
+        setTimeout(() => addClass(dom._jmContainer, 'cc--anim'), 100);
     }
 
-    getModalFocusableData(3);
+    // getModalFocusableData(3);
 };

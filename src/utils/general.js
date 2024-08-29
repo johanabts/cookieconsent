@@ -893,6 +893,9 @@ export const getModalFocusableData = (modalId) => {
 
     if (modalId === 2 && _state._preferencesModalExists)
         saveAllFocusableElements(_dom._pm, _state._pmFocusableElements);
+
+    if (modalId === 3 && _state._btsPreferencesModalExists)
+        saveAllFocusableElements(_dom._jm, _state._jmFocusableElements);
 };
 
 /**

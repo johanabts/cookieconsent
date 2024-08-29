@@ -12,6 +12,7 @@ const OPT_OUT_MODE = 'opt-out';
 
 const TOGGLE_CONSENT_MODAL_CLASS = 'show--consent';
 const TOGGLE_PREFERENCES_MODAL_CLASS = 'show--preferences';
+const TOGGLE_BTS_PREFERENCES_MODAL_CLASS = 'show-bts-preferences';
 const TOGGLE_DISABLE_INTERACTION_CLASS = 'disable--interaction';
 
 const SCRIPT_TAG_SELECTOR = 'data-category';
@@ -67,7 +68,7 @@ const PREFERENCES_MODAL_NAME = 'preferencesModal';
  * @property {HTMLElement} _ccMain
  * @property {HTMLElement} _cmContainer
  * @property {HTMLElement} _pmContainer
- * @property {HTMLElement} _btsContainer
+ * @property {HTMLElement} _jmContainer
  *
  * @property {HTMLElement} _cm
  * @property {HTMLElement} _cmBody
@@ -96,6 +97,18 @@ const PREFERENCES_MODAL_NAME = 'preferencesModal';
  * @property {HTMLElement} _pmAcceptAllBtn
  * @property {HTMLElement} _pmAcceptNecessaryBtn
  * @property {HTMLElement} _pmSavePreferencesBtn
+ * 
+ * @property {HTMLElement} _jm
+ * @property {HTMLElement} _jmHeader
+ * @property {HTMLElement} _jmTitle
+ * @property {HTMLElement} _jmCloseBtn
+ * @property {HTMLElement} _jmBody
+ * @property {HTMLElement} _jmNewBody
+ * @property {HTMLElement} _jmSections
+ * @property {HTMLElement} _jmFooter
+ * @property {HTMLElement} _jmAcceptAllBtn
+ * @property {HTMLElement} _jmAcceptNecessaryBtn
+ * @property {HTMLElement} _jmSavePreferencesBtn
  *
  * @property {Object.<string, HTMLInputElement>} _categoryCheckboxInputs
  * @property {Object.<string, ServiceToggle>} _serviceCheckboxInputs
@@ -103,6 +116,7 @@ const PREFERENCES_MODAL_NAME = 'preferencesModal';
  * // Used to properly restore focus when modal is closed
  * @property {HTMLSpanElement} _focusSpan
  * @property {HTMLSpanElement} _pmFocusSpan
+ * @property {HTMLSpanElement} _jmFocusSpan
  */
 
 /**
@@ -217,6 +231,9 @@ class GlobalState {
             _preferencesModalVisible : false,
             _preferencesModalExists: false,
 
+            _btsPreferencesModalVisible : false,
+            _btsPreferencesModalExists: false,
+
             /**
             * @type {HTMLElement[]}
             */
@@ -293,6 +310,7 @@ class GlobalState {
 
             /** @type {HTMLElement[]} **/ _cmFocusableElements : [],
             /** @type {HTMLElement[]} **/ _pmFocusableElements : [],
+            /** @type {HTMLElement[]} **/ _jmFocusableElements : [],
 
             /**
             * Keep track of enabled/disabled categories
@@ -1256,6 +1274,9 @@ const getModalFocusableData = (modalId) => {
 
     if (modalId === 2 && _state._preferencesModalExists)
         saveAllFocusableElements(_dom._pm, _state._pmFocusableElements);
+
+    if (modalId === 3 && _state._btsPreferencesModalExists)
+        saveAllFocusableElements(_dom._jm, _state._jmFocusableElements);
 };
 
 /**
@@ -1612,7 +1633,7 @@ const ALL_PM_LAYOUTS = {
 
 /**
  * Add appropriate classes to modals and buttons
- * @param {0 | 1} applyToModal
+ * @param {0 | 1 | 2} applyToModal
  */
 const guiManager = (applyToModal) => {
     const guiOptions = globalObj._state._userConfig.guiOptions;
@@ -1633,6 +1654,17 @@ const guiManager = (applyToModal) => {
     if (applyToModal === 1) {
         setLayout(
             globalObj._dom._pm,
+            ALL_PM_LAYOUTS,
+            preferencesModalOptions,
+            CLASS_CONSTANTS._pmPrefix,
+            CLASS_CONSTANTS._box,
+            'pm'
+        );
+    }
+
+    if (applyToModal === 2) {
+        setLayout(
+            globalObj._dom._jm,
             ALL_PM_LAYOUTS,
             preferencesModalOptions,
             CLASS_CONSTANTS._pmPrefix,
@@ -2312,6 +2344,102 @@ function createToggleLabel(label, value, sCurrentCategoryObject, isService, cate
 }
 
 /**
+ * Generates custom modal and appends it to "cc-main" el.
+ * @param {import("../global").Api} api
+ * @param {CreateMainContainer} createMainContainer
+ */
+const createBtsModal = (api, createMainContainer) => {
+    const state =  globalObj._state;
+    const dom = globalObj._dom;
+
+    const {hideBtsPreferences} = api;
+
+    const btsPreferencesModalTitle = 'BTS',
+        btsPreferencesModalDescription = 'BTS preferences center';
+
+    if(!dom._jmContainer) {
+        dom._jmContainer = createNode(DIV_TAG);
+        addClass(dom._jmContainer, 'pm-wrapper');
+
+        const btsOverlay = createNode('div');
+        addClass(btsOverlay, 'pm-overlay');
+        appendChild(dom._jmContainer, btsOverlay);
+
+        addEvent(btsOverlay, CLICK_EVENT, hideBtsPreferences);
+
+        dom._jm = createNode(DIV_TAG);
+
+        addClass(dom._jm, 'pm');
+        setAttribute(dom._jm, 'role', 'dialog');
+        setAttribute(dom._jm, ARIA_HIDDEN, true);
+        setAttribute(dom._jm, 'aria-modal', true);
+        setAttribute(dom._jm, 'aria-labelledby', 'cm__title');
+
+        addEvent(dom._htmlDom, 'keydown', (event) => {
+            if (event.keyCode === 27)
+                hideBtsPreferences();
+        }, true);
+
+        dom._jmHeader = createNode(DIV_TAG);
+        addClassPm(dom._jmHeader, 'header');
+
+        dom._jmTitle = createNode('h2');
+        addClassPm(dom._jmTitle, 'title');
+        dom._jmTitle.id = 'jm__title';
+
+        dom._jmCloseBtn = createNode(BUTTON_TAG);
+        addClassPm(dom._jmCloseBtn, 'close-btn');
+        setAttribute(dom._jmCloseBtn, 'aria-label', '');
+        addEvent(dom._jmCloseBtn, CLICK_EVENT, hideBtsPreferences);
+
+        dom._jmFocusSpan = createNode('span');
+        dom._jmFocusSpan.innerHTML = getSvgIcon();
+        appendChild(dom._jmCloseBtn, dom._jmFocusSpan);
+
+        appendChild(dom._jmHeader, dom._jmTitle);
+        appendChild(dom._jmHeader, dom._jmCloseBtn);
+
+        dom._jmBody = createNode(DIV_TAG);
+        addClassPm(dom._jmBody, 'body');
+
+        appendChild(dom._jm, dom._jmHeader);
+        appendChild(dom._jm, dom._jmBody);
+
+        appendChild(dom._jmContainer, dom._jm);
+    }else {
+        dom._mjNewBody = createNode(DIV_TAG);
+        addClassPm(dom._jmNewBody, 'body');
+    }
+
+    {
+        dom._jmTitle.innerHTML = btsPreferencesModalTitle;
+    }
+
+    {
+        dom._jmBody.innerHTML = btsPreferencesModalDescription;
+    }
+
+    if (dom._jmNewBody) {
+        dom._jm.replaceChild(dom._jmNewBody, dom._jmBody);
+        dom._jmBody = dom._jmNewBody;
+    }
+
+    guiManager(2);
+
+    if (!state._btsPreferencesModalExists) {
+        state._btsPreferencesModalExists = true;
+
+        fireEvent(globalObj._customEvents._onModalReady, 'bts-preferences-modal', dom._jm);
+        createMainContainer(api);
+        appendChild(dom._ccMain, dom._jmContainer);
+
+        setTimeout(() => addClass(dom._jmContainer, 'cc--anim'), 100);
+    }
+
+    // getModalFocusableData(3);
+};
+
+/**
  * @callback CreateMainContainer
  */
 
@@ -2335,7 +2463,7 @@ const createFocusSpan = () => {
 const createConsentModal = (api, createMainContainer) => {
     const state = globalObj._state;
     const dom = globalObj._dom;
-    const {hide, showPreferences, acceptCategory} = api;
+    const {hide, showPreferences, acceptCategory, showBtsPreferences} = api;
 
     /**
      * @type {import("../global").ConsentModalOptions}
@@ -2352,7 +2480,7 @@ const createConsentModal = (api, createMainContainer) => {
         footerData = consentModalData.footer,
         consentModalLabelValue = consentModalData.label,
         consentModalTitleValue = consentModalData.title,
-        showMyBtnData = 'Manage with BTS';
+        showMyBtnTitle = 'Manage with BTSssss';
 
     /**
      * @param {string|string[]} [categories]
@@ -2506,7 +2634,7 @@ const createConsentModal = (api, createMainContainer) => {
         dom._cmShowPreferencesBtn.firstElementChild.innerHTML = showPreferencesBtnData;
     }
 
-    {
+    if (showMyBtnTitle){
         if (!dom._cmShowMyBtn) {
             dom._cmShowMyBtn = createNode(BUTTON_TAG);
             appendChild(dom._cmShowMyBtn, createFocusSpan());
@@ -2514,14 +2642,19 @@ const createConsentModal = (api, createMainContainer) => {
             addClassCm(dom._cmShowMyBtn, 'btn--secondary');
             setAttribute(dom._cmShowMyBtn, DATA_ROLE, 'show');
 
-            addEvent(dom._cmShowMyBtn, 'mouseenter', () => {
-                if (!state._preferencesModalExists)
-                    createPreferencesModal(api, createMainContainer);
+            // addEvent(dom._cmShowMyBtn, CLICK_EVENT, showBtsPreferences);
+
+            addEvent(dom._cmShowMyBtn, CLICK_EVENT, () => {
+                // if (!state._btsPreferencesModalExists){
+                // console.log('showMyBtnTitle');
+
+                    createBtsModal(api, createMainContainer);
+                // }
+                // showBtsPreferences();
             });
-            addEvent(dom._cmShowMyBtn, CLICK_EVENT, showPreferences);
         }
 
-        dom._cmShowMyBtn.firstElementChild.innerHTML = showMyBtnData;
+        dom._cmShowMyBtn.firstElementChild.innerHTML = showMyBtnTitle;
     }
 
     if (!dom._cmBtnGroup) {
@@ -2550,15 +2683,9 @@ const createConsentModal = (api, createMainContainer) => {
 
     if (dom._cmShowMyBtn && !dom._cmBtnGroup3) {
         dom._cmBtnGroup3 = createNode(DIV_TAG);
-
-        if ((!dom._cmAcceptNecessaryBtn || !dom._cmAcceptAllBtn)) {
-            appendChild(dom._cmBtnGroup, dom._cmShowMyBtn);
-            addClassCm(dom._cmBtnGroup, BTN_GROUP_CLASS + '--uneven');
-        }else {
-            addClassCm(dom._cmBtnGroup3, BTN_GROUP_CLASS);
-            appendChild(dom._cmBtnGroup3, dom._cmShowMyBtn);
-            appendChild(dom._cmBtns, dom._cmBtnGroup3);
-        }
+        addClassCm(dom._cmBtnGroup3, BTN_GROUP_CLASS);
+        appendChild(dom._cmBtnGroup3, dom._cmShowMyBtn);
+        appendChild(dom._cmBtns, dom._cmBtnGroup3);
     }
 
     if (footerData) {
@@ -3509,6 +3636,27 @@ const showPreferences = () => {
 };
 
 /**
+ * Show BTS preferences custom modal
+ */
+const showBtsPreferences = () => {
+    console.log('holaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+    const state = globalObj._state;
+
+    if (state._btsPreferencesModalVisible)
+        return;
+
+    if (!state._btsPreferencesModalExists){
+        createBtsModal(miniAPI, createMainContainer);
+    }
+
+    state._btsPreferencesModalVisible = true;
+
+    addClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
+    setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'false');
+    fireEvent(globalObj._customEvents._onModalShow, 'bts-preferences-modal');
+};
+
+/**
  * https://github.com/orestbida/cookieconsent/issues/481
  */
 const discardUnsavedPreferences = () => {
@@ -3577,6 +3725,39 @@ const hidePreferences = () => {
     debug('CookieConsent [TOGGLE]: hide preferencesModal');
 
     fireEvent(globalObj._customEvents._onModalHide, PREFERENCES_MODAL_NAME);
+};
+
+/**
+ * Hide BTS preferences modal
+ */
+const hideBtsPreferences = () => {
+    const state = globalObj._state;
+
+    if (!state._btsPreferencesModalVisible)
+        return;
+
+    state._btsPreferencesModalVisible = false;
+
+
+    removeClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
+    setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'true');
+
+    /**
+     * If consent modal is visible, focus him (instead of page document)
+     */
+    if (state._consentModalVisible) {
+        focus(state._lastFocusedModalElement);
+        state._lastFocusedModalElement = null;
+    } else {
+        /**
+         * Restore focus to last page element which had focus before modal opening
+         */
+        focus(state._lastFocusedElemBeforeModal);
+        state._lastFocusedElemBeforeModal = null;
+    }
+
+    debug('CookieConsent [TOGGLE]: hide btsPreferencesModal');
+
 };
 
 var miniAPI = {
@@ -3953,4 +4134,4 @@ const reset = (deleteCookie) => {
     window._ccRun = false;
 };
 
-export { acceptCategory, acceptService, acceptedCategory, acceptedService, eraseCookies, getConfig, getCookie, getUserPreferences, hide, hidePreferences, loadScript, reset, run, setCookieData, setLanguage, show, showPreferences, validConsent, validCookie };
+export { acceptCategory, acceptService, acceptedCategory, acceptedService, eraseCookies, getConfig, getCookie, getUserPreferences, hide, hideBtsPreferences, hidePreferences, loadScript, reset, run, setCookieData, setLanguage, show, showBtsPreferences, showPreferences, validConsent, validCookie };

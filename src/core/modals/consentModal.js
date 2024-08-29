@@ -27,6 +27,7 @@ import {
 
 import { guiManager } from '../../utils/gui-manager';
 import { createPreferencesModal } from './preferencesModal';
+import { createBtsModal } from './btsModal';
 
 /**
  * @callback CreateMainContainer
@@ -52,7 +53,7 @@ const createFocusSpan = () => {
 export const createConsentModal = (api, createMainContainer) => {
     const state = globalObj._state;
     const dom = globalObj._dom;
-    const {hide, showPreferences, acceptCategory} = api;
+    const {hide, showPreferences, acceptCategory, showBtsPreferences} = api;
 
     /**
      * @type {import("../global").ConsentModalOptions}
@@ -69,7 +70,7 @@ export const createConsentModal = (api, createMainContainer) => {
         footerData = consentModalData.footer,
         consentModalLabelValue = consentModalData.label,
         consentModalTitleValue = consentModalData.title,
-        showMyBtnData = 'Manage with BTS';
+        showMyBtnTitle = 'Manage with BTSssss';
 
     /**
      * @param {string|string[]} [categories]
@@ -223,7 +224,7 @@ export const createConsentModal = (api, createMainContainer) => {
         dom._cmShowPreferencesBtn.firstElementChild.innerHTML = showPreferencesBtnData;
     }
 
-    if (showMyBtnData) {
+    if (showMyBtnTitle) {
         if (!dom._cmShowMyBtn) {
             dom._cmShowMyBtn = createNode(BUTTON_TAG);
             appendChild(dom._cmShowMyBtn, createFocusSpan());
@@ -231,14 +232,15 @@ export const createConsentModal = (api, createMainContainer) => {
             addClassCm(dom._cmShowMyBtn, 'btn--secondary');
             setAttribute(dom._cmShowMyBtn, DATA_ROLE, 'show');
 
-            addEvent(dom._cmShowMyBtn, 'mouseenter', () => {
-                if (!state._preferencesModalExists)
-                    createPreferencesModal(api, createMainContainer);
+            addEvent(dom._cmShowMyBtn, CLICK_EVENT, () => {
+                if (!state._btsPreferencesModalExists){
+                    createBtsModal(api, createMainContainer);
+                }
+                showBtsPreferences();
             });
-            addEvent(dom._cmShowMyBtn, CLICK_EVENT, showPreferences);
         }
 
-        dom._cmShowMyBtn.firstElementChild.innerHTML = showMyBtnData;
+        dom._cmShowMyBtn.firstElementChild.innerHTML = showMyBtnTitle;
     }
 
     if (!dom._cmBtnGroup) {
@@ -267,15 +269,9 @@ export const createConsentModal = (api, createMainContainer) => {
 
     if (dom._cmShowMyBtn && !dom._cmBtnGroup3) {
         dom._cmBtnGroup3 = createNode(DIV_TAG);
-
-        if ((!dom._cmAcceptNecessaryBtn || !dom._cmAcceptAllBtn)) {
-            appendChild(dom._cmBtnGroup, dom._cmShowMyBtn);
-            addClassCm(dom._cmBtnGroup, BTN_GROUP_CLASS + '--uneven');
-        }else {
-            addClassCm(dom._cmBtnGroup3, BTN_GROUP_CLASS);
-            appendChild(dom._cmBtnGroup3, dom._cmShowMyBtn);
-            appendChild(dom._cmBtns, dom._cmBtnGroup3);
-        }
+        addClassCm(dom._cmBtnGroup3, BTN_GROUP_CLASS);
+        appendChild(dom._cmBtnGroup3, dom._cmShowMyBtn);
+        appendChild(dom._cmBtns, dom._cmBtnGroup3);
     }
 
     if (footerData) {

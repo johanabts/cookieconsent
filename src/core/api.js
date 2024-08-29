@@ -68,9 +68,12 @@ import {
     OPT_OUT_MODE,
     CONSENT_MODAL_NAME,
     ARIA_HIDDEN,
-    PREFERENCES_MODAL_NAME
+    PREFERENCES_MODAL_NAME,
+    BTS_PREFERENCES_MODAL_NAME,
+    TOGGLE_BTS_PREFERENCES_MODAL_CLASS
 } from '../utils/constants';
 import { localStorageManager } from '../utils/localstorage';
+import { createBtsModal } from './modals/btsModal';
 
 /**
  * Accept API
@@ -289,6 +292,27 @@ export const showPreferences = () => {
 };
 
 /**
+ * Show BTS preferences custom modal
+ */
+export const showBtsPreferences = () => {
+    console.log('holaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+    const state = globalObj._state;
+
+    if (state._btsPreferencesModalVisible)
+        return;
+
+    if (!state._btsPreferencesModalExists){
+        createBtsModal(miniAPI, createMainContainer);
+    }
+
+    state._btsPreferencesModalVisible = true;
+
+    addClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
+    setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'false');
+    fireEvent(globalObj._customEvents._onModalShow, 'bts-preferences-modal');
+};
+
+/**
  * https://github.com/orestbida/cookieconsent/issues/481
  */
 const discardUnsavedPreferences = () => {
@@ -357,6 +381,39 @@ export const hidePreferences = () => {
     debug('CookieConsent [TOGGLE]: hide preferencesModal');
 
     fireEvent(globalObj._customEvents._onModalHide, PREFERENCES_MODAL_NAME);
+};
+
+/**
+ * Hide BTS preferences modal
+ */
+export const hideBtsPreferences = () => {
+    const state = globalObj._state;
+
+    if (!state._btsPreferencesModalVisible)
+        return;
+
+    state._btsPreferencesModalVisible = false;
+
+
+    removeClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
+    setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'true');
+
+    /**
+     * If consent modal is visible, focus him (instead of page document)
+     */
+    if (state._consentModalVisible) {
+        focus(state._lastFocusedModalElement);
+        state._lastFocusedModalElement = null;
+    } else {
+        /**
+         * Restore focus to last page element which had focus before modal opening
+         */
+        focus(state._lastFocusedElemBeforeModal);
+        state._lastFocusedElemBeforeModal = null;
+    }
+
+    debug('CookieConsent [TOGGLE]: hide btsPreferencesModal');
+
 };
 
 var miniAPI = {

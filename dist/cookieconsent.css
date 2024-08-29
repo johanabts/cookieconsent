@@ -1352,6 +1352,21 @@ html.disable--interaction.show--consent, html.disable--interaction.show--consent
   visibility: visible;
 }
 
+.show-bts-preferences #cc-main .cc--anim .pm {
+  opacity: 1;
+  visibility: visible !important;
+}
+.show-bts-preferences #cc-main .cc--anim .pm--box {
+  transform: translateY(-50%);
+}
+.show-bts-preferences #cc-main .cc--anim .pm--bar {
+  transform: translateX(0);
+}
+.show-bts-preferences #cc-main .cc--anim .pm-overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Start: fix RTL layout */
 #cc-main.cc--rtl .pm__service-header {
   margin-right: 0;

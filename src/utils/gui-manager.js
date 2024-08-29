@@ -83,7 +83,7 @@ const ALL_PM_LAYOUTS = {
 
 /**
  * Add appropriate classes to modals and buttons
- * @param {0 | 1} applyToModal
+ * @param {0 | 1 | 2} applyToModal
  */
 export const guiManager = (applyToModal) => {
     const guiOptions = globalObj._state._userConfig.guiOptions;
@@ -104,6 +104,17 @@ export const guiManager = (applyToModal) => {
     if (applyToModal === 1) {
         setLayout(
             globalObj._dom._pm,
+            ALL_PM_LAYOUTS,
+            preferencesModalOptions,
+            CLASS_CONSTANTS._pmPrefix,
+            CLASS_CONSTANTS._box,
+            'pm'
+        );
+    }
+
+    if (applyToModal === 2) {
+        setLayout(
+            globalObj._dom._jm,
             ALL_PM_LAYOUTS,
             preferencesModalOptions,
             CLASS_CONSTANTS._pmPrefix,
