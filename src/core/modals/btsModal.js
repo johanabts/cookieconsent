@@ -1,5 +1,5 @@
-import { DIV_TAG, CLICK_EVENT, ARIA_HIDDEN, BUTTON_TAG } from '../../utils/constants';
-import { addClass, appendChild, getModalFocusableData, fireEvent, createNode, addEvent, setAttribute, addClassPm, getSvgIcon } from '../../utils/general';
+import { DIV_TAG, CLICK_EVENT, ARIA_HIDDEN, BUTTON_TAG, BTS_PREFERENCES_MODAL_NAME } from '../../utils/constants';
+import { addClass, appendChild, getModalFocusableData, debug, fireEvent, createNode, addEvent, setAttribute, addClassPm, getSvgIcon, handleFocusTrap } from '../../utils/general';
 import { guiManager } from '../../utils/gui-manager';
 import { globalObj } from '../global';
 
@@ -61,9 +61,13 @@ export const createBtsModal = (api, createMainContainer) => {
 
         dom._jmBody = createNode(DIV_TAG);
         addClassPm(dom._jmBody, 'body');
-
+        
         appendChild(dom._jm, dom._jmHeader);
         appendChild(dom._jm, dom._jmBody);
+
+        dom._jmDivTabindex = createNode(DIV_TAG);
+        setAttribute(dom._jmDivTabindex, 'tabIndex', -1);
+        appendChild(dom._jm, dom._jmDivTabindex);
 
         appendChild(dom._jmContainer, dom._jm);
     }else {
@@ -89,12 +93,18 @@ export const createBtsModal = (api, createMainContainer) => {
     if (!state._btsPreferencesModalExists) {
         state._btsPreferencesModalExists = true;
 
-        fireEvent(globalObj._customEvents._onModalReady, 'bts-preferences-modal', dom._jm);
+        debug('CookieConsent [HTML] created', BTS_PREFERENCES_MODAL_NAME);
+
+        fireEvent(globalObj._customEvents._onModalReady, BTS_PREFERENCES_MODAL_NAME, dom._jm);
         createMainContainer(api);
         appendChild(dom._ccMain, dom._jmContainer);
+        handleFocusTrap(dom._jm);
 
+        /**
+         * Enable transition
+         */
         setTimeout(() => addClass(dom._jmContainer, 'cc--anim'), 100);
     }
 
-    // getModalFocusableData(3);
+    getModalFocusableData(3);
 };

@@ -616,8 +616,9 @@ export const setAcceptedCategories = (acceptedCategories) => {
  * @param {HTMLElement} [elem]
  * @param {import('../core/global').Api} api
  * @param {createModal} [createPreferencesModal]
+ * @param {createModal} [createBtsModal]
  */
-export const addDataButtonListeners = (elem, api, createPreferencesModal, createMainContainer) => {
+export const addDataButtonListeners = (elem, api, createPreferencesModal, createBtsModal, createMainContainer) => {
     const ACCEPT_PREFIX = 'accept-';
 
     const {
@@ -649,7 +650,8 @@ export const addDataButtonListeners = (elem, api, createPreferencesModal, create
         acceptAllElements = getElements(ACCEPT_PREFIX + 'all'),
         acceptNecessaryElements = getElements(ACCEPT_PREFIX + 'necessary'),
         acceptCustomElements = getElements(ACCEPT_PREFIX + 'custom'),
-        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration;
+        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration,
+        createBtsModalOnHover = globalObj._config.lazyHtmlGeneration;
 
     //{{START: GUI}}
     for (const el of showPreferencesModalElements) {
@@ -669,6 +671,19 @@ export const addDataButtonListeners = (elem, api, createPreferencesModal, create
             addEvent(el, 'focus', () => {
                 if (!globalObj._state._preferencesModalExists)
                     createPreferencesModal(api, createMainContainer);
+            });
+        }
+
+        if (createBtsModalOnHover) {
+            addEvent(el, 'mouseenter', (event) => {
+                preventDefault(event);
+                if (!globalObj._state._btsPreferencesModalExists)
+                    createBtsModal(api, createMainContainer);
+            }, true);
+
+            addEvent(el, 'focus', () => {
+                if (!globalObj._state._btsPreferencesModalExists)
+                    createBtsModal(api, createMainContainer);
             });
         }
     }

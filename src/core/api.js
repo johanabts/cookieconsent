@@ -36,6 +36,7 @@ import {
 import {
     createConsentModal,
     createPreferencesModal,
+    createBtsModal,
     generateHtml,
     createMainContainer
 } from './modals/index';
@@ -73,7 +74,6 @@ import {
     TOGGLE_BTS_PREFERENCES_MODAL_CLASS
 } from '../utils/constants';
 import { localStorageManager } from '../utils/localstorage';
-import { createBtsModal } from './modals/btsModal';
 
 /**
  * Accept API
@@ -295,21 +295,38 @@ export const showPreferences = () => {
  * Show BTS preferences custom modal
  */
 export const showBtsPreferences = () => {
-    console.log('holaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     const state = globalObj._state;
 
     if (state._btsPreferencesModalVisible)
         return;
 
-    if (!state._btsPreferencesModalExists){
+    if (!state._btsPreferencesModalExists)
         createBtsModal(miniAPI, createMainContainer);
-    }
 
     state._btsPreferencesModalVisible = true;
 
+    // If there is no consent-modal, keep track of the last focused elem.
+    if (!state._consentModalVisible) {
+        state._lastFocusedElemBeforeModal = getActiveElement();
+    } else {
+        state._lastFocusedModalElement = getActiveElement();
+    }
+
+    focusAfterTransition(globalObj._dom._jm, 2);
+
     addClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
     setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'false');
-    fireEvent(globalObj._customEvents._onModalShow, 'bts-preferences-modal');
+
+    /**
+     * Set focus to btsPreferencesModal
+     */
+    setTimeout(() => {
+        focus(globalObj._dom._jmDivTabindex);
+    }, 100);
+
+    debug('CookieConsent [TOGGLE]: show btsPreferencesModal');
+
+    fireEvent(globalObj._customEvents._onModalShow, BTS_PREFERENCES_MODAL_NAME);
 };
 
 /**
@@ -394,6 +411,12 @@ export const hideBtsPreferences = () => {
 
     state._btsPreferencesModalVisible = false;
 
+    discardUnsavedPreferences();
+
+    /**
+     * Fix focus restoration to body with Chrome
+     */
+    focus(globalObj._dom._jmFocusSpan, true);
 
     removeClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
     setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'true');
@@ -414,6 +437,7 @@ export const hideBtsPreferences = () => {
 
     debug('CookieConsent [TOGGLE]: hide btsPreferencesModal');
 
+    fireEvent(globalObj._customEvents._onModalHide, BTS_PREFERENCES_MODAL_NAME);
 };
 
 var miniAPI = {
@@ -421,6 +445,8 @@ var miniAPI = {
     hide,
     showPreferences,
     hidePreferences,
+    showBtsPreferences,
+    hideBtsPreferences,
     acceptCategory
 };
 
@@ -453,6 +479,9 @@ export const setLanguage = async (newLanguageCode, forceUpdate) => {
 
         if (state._preferencesModalExists)
             createPreferencesModal(miniAPI, createMainContainer);
+
+        if (state._btsPreferencesModalExists)
+            createBtsModal(miniAPI, createMainContainer);
 
         handleRtlLanguage();
 

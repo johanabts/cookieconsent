@@ -27,6 +27,7 @@ const DATA_ROLE = 'data-role';
 
 const CONSENT_MODAL_NAME = 'consentModal';
 const PREFERENCES_MODAL_NAME = 'preferencesModal';
+const BTS_PREFERENCES_MODAL_NAME = 'btsModal';
 
 /**
  * @typedef {import('../../types')} CookieConsent
@@ -997,8 +998,9 @@ const setAcceptedCategories = (acceptedCategories) => {
  * @param {HTMLElement} [elem]
  * @param {import('../core/global').Api} api
  * @param {createModal} [createPreferencesModal]
+ * @param {createModal} [createBtsModal]
  */
-const addDataButtonListeners = (elem, api, createPreferencesModal, createMainContainer) => {
+const addDataButtonListeners = (elem, api, createPreferencesModal, createBtsModal, createMainContainer) => {
     const ACCEPT_PREFIX = 'accept-';
 
     const {
@@ -1030,7 +1032,8 @@ const addDataButtonListeners = (elem, api, createPreferencesModal, createMainCon
         acceptAllElements = getElements(ACCEPT_PREFIX + 'all'),
         acceptNecessaryElements = getElements(ACCEPT_PREFIX + 'necessary'),
         acceptCustomElements = getElements(ACCEPT_PREFIX + 'custom'),
-        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration;
+        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration,
+        createBtsModalOnHover = globalObj._config.lazyHtmlGeneration;
 
     //{{START: GUI}}
     for (const el of showPreferencesModalElements) {
@@ -1050,6 +1053,19 @@ const addDataButtonListeners = (elem, api, createPreferencesModal, createMainCon
             addEvent(el, 'focus', () => {
                 if (!globalObj._state._preferencesModalExists)
                     createPreferencesModal(api, createMainContainer);
+            });
+        }
+
+        if (createBtsModalOnHover) {
+            addEvent(el, 'mouseenter', (event) => {
+                preventDefault(event);
+                if (!globalObj._state._btsPreferencesModalExists)
+                    createBtsModal(api, createMainContainer);
+            }, true);
+
+            addEvent(el, 'focus', () => {
+                if (!globalObj._state._btsPreferencesModalExists)
+                    createBtsModal(api, createMainContainer);
             });
         }
     }
@@ -2401,9 +2417,13 @@ const createBtsModal = (api, createMainContainer) => {
 
         dom._jmBody = createNode(DIV_TAG);
         addClassPm(dom._jmBody, 'body');
-
+        
         appendChild(dom._jm, dom._jmHeader);
         appendChild(dom._jm, dom._jmBody);
+
+        dom._jmDivTabindex = createNode(DIV_TAG);
+        setAttribute(dom._jmDivTabindex, 'tabIndex', -1);
+        appendChild(dom._jm, dom._jmDivTabindex);
 
         appendChild(dom._jmContainer, dom._jm);
     }else {
@@ -2429,14 +2449,20 @@ const createBtsModal = (api, createMainContainer) => {
     if (!state._btsPreferencesModalExists) {
         state._btsPreferencesModalExists = true;
 
-        fireEvent(globalObj._customEvents._onModalReady, 'bts-preferences-modal', dom._jm);
+        debug('CookieConsent [HTML] created', BTS_PREFERENCES_MODAL_NAME);
+
+        fireEvent(globalObj._customEvents._onModalReady, BTS_PREFERENCES_MODAL_NAME, dom._jm);
         createMainContainer(api);
         appendChild(dom._ccMain, dom._jmContainer);
+        handleFocusTrap(dom._jm);
 
+        /**
+         * Enable transition
+         */
         setTimeout(() => addClass(dom._jmContainer, 'cc--anim'), 100);
     }
 
-    // getModalFocusableData(3);
+    getModalFocusableData(3);
 };
 
 /**
@@ -2634,7 +2660,7 @@ const createConsentModal = (api, createMainContainer) => {
         dom._cmShowPreferencesBtn.firstElementChild.innerHTML = showPreferencesBtnData;
     }
 
-    if (showMyBtnTitle){
+    {
         if (!dom._cmShowMyBtn) {
             dom._cmShowMyBtn = createNode(BUTTON_TAG);
             appendChild(dom._cmShowMyBtn, createFocusSpan());
@@ -2642,15 +2668,11 @@ const createConsentModal = (api, createMainContainer) => {
             addClassCm(dom._cmShowMyBtn, 'btn--secondary');
             setAttribute(dom._cmShowMyBtn, DATA_ROLE, 'show');
 
-            // addEvent(dom._cmShowMyBtn, CLICK_EVENT, showBtsPreferences);
-
             addEvent(dom._cmShowMyBtn, CLICK_EVENT, () => {
-                // if (!state._btsPreferencesModalExists){
-                // console.log('showMyBtnTitle');
-
+                if (!state._btsPreferencesModalExists){
                     createBtsModal(api, createMainContainer);
-                // }
-                // showBtsPreferences();
+                }
+                showBtsPreferences();
             });
         }
 
@@ -2726,7 +2748,7 @@ const createConsentModal = (api, createMainContainer) => {
 
     getModalFocusableData(1);
 
-    addDataButtonListeners(dom._cmBody, api, createPreferencesModal, createMainContainer);
+    addDataButtonListeners(dom._cmBody, api, createPreferencesModal, createBtsModal, createMainContainer);
 };
 
 /**
@@ -2893,13 +2915,16 @@ const createMainContainer = () => {
  * @param {import('../global').Api} api
  */
 const generateHtml = (api) => {
-    addDataButtonListeners(null, api, createPreferencesModal, createMainContainer);
+    addDataButtonListeners(null, api, createPreferencesModal, createBtsModal, createMainContainer);
 
     if (globalObj._state._invalidConsent)
         createConsentModal(api, createMainContainer);
 
     if (!globalObj._config.lazyHtmlGeneration)
         createPreferencesModal(api, createMainContainer);
+
+    if (!globalObj._config.lazyHtmlGeneration)
+        createBtsModal(api, createMainContainer);
 };
 
 const localStorageManager = {
@@ -3639,21 +3664,38 @@ const showPreferences = () => {
  * Show BTS preferences custom modal
  */
 const showBtsPreferences = () => {
-    console.log('holaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
     const state = globalObj._state;
 
     if (state._btsPreferencesModalVisible)
         return;
 
-    if (!state._btsPreferencesModalExists){
+    if (!state._btsPreferencesModalExists)
         createBtsModal(miniAPI, createMainContainer);
-    }
 
     state._btsPreferencesModalVisible = true;
 
+    // If there is no consent-modal, keep track of the last focused elem.
+    if (!state._consentModalVisible) {
+        state._lastFocusedElemBeforeModal = getActiveElement();
+    } else {
+        state._lastFocusedModalElement = getActiveElement();
+    }
+
+    focusAfterTransition(globalObj._dom._jm, 2);
+
     addClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
     setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'false');
-    fireEvent(globalObj._customEvents._onModalShow, 'bts-preferences-modal');
+
+    /**
+     * Set focus to btsPreferencesModal
+     */
+    setTimeout(() => {
+        focus(globalObj._dom._jmDivTabindex);
+    }, 100);
+
+    debug('CookieConsent [TOGGLE]: show btsPreferencesModal');
+
+    fireEvent(globalObj._customEvents._onModalShow, BTS_PREFERENCES_MODAL_NAME);
 };
 
 /**
@@ -3738,6 +3780,12 @@ const hideBtsPreferences = () => {
 
     state._btsPreferencesModalVisible = false;
 
+    discardUnsavedPreferences();
+
+    /**
+     * Fix focus restoration to body with Chrome
+     */
+    focus(globalObj._dom._jmFocusSpan, true);
 
     removeClass(globalObj._dom._htmlDom, TOGGLE_BTS_PREFERENCES_MODAL_CLASS);
     setAttribute(globalObj._dom._jm, ARIA_HIDDEN, 'true');
@@ -3758,6 +3806,7 @@ const hideBtsPreferences = () => {
 
     debug('CookieConsent [TOGGLE]: hide btsPreferencesModal');
 
+    fireEvent(globalObj._customEvents._onModalHide, BTS_PREFERENCES_MODAL_NAME);
 };
 
 var miniAPI = {
@@ -3765,6 +3814,8 @@ var miniAPI = {
     hide,
     showPreferences,
     hidePreferences,
+    showBtsPreferences,
+    hideBtsPreferences,
     acceptCategory
 };
 
@@ -3797,6 +3848,9 @@ const setLanguage = async (newLanguageCode, forceUpdate) => {
 
         if (state._preferencesModalExists)
             createPreferencesModal(miniAPI, createMainContainer);
+
+        if (state._btsPreferencesModalExists)
+            createBtsModal(miniAPI, createMainContainer);
 
         handleRtlLanguage();
 
