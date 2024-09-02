@@ -70,7 +70,7 @@ export const createConsentModal = (api, createMainContainer) => {
         footerData = consentModalData.footer,
         consentModalLabelValue = consentModalData.label,
         consentModalTitleValue = consentModalData.title,
-        showMyBtnTitle = 'Manage with BTSssss';
+        showMyBtnTitle = 'Manage with BTS';
 
     /**
      * @param {string|string[]} [categories]

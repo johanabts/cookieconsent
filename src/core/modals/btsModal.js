@@ -8,13 +8,13 @@ import { globalObj } from '../global';
  * @param {import("../global").Api} api
  * @param {CreateMainContainer} createMainContainer
  */
-export const createBtsModal = (api, createMainContainer) => {
+export const createBtsModal = async (api, createMainContainer) => {
     const state =  globalObj._state;
     const dom = globalObj._dom;
 
     const {hideBtsPreferences} = api;
 
-    const btsPreferencesModalTitle = 'BTS',
+    const btsPreferencesModalTitle = 'Manage preferences with BTS',
         btsPreferencesModalDescription = 'BTS preferences center';
 
     if(!dom._jmContainer) {
@@ -80,7 +80,7 @@ export const createBtsModal = (api, createMainContainer) => {
     }
 
     if (btsPreferencesModalDescription) {
-        dom._jmBody.innerHTML = btsPreferencesModalDescription;
+        dom._jmBody.innerHTML = `${btsPreferencesModalDescription}<br>`;
     }
 
     if (dom._jmNewBody) {
@@ -107,4 +107,28 @@ export const createBtsModal = (api, createMainContainer) => {
     }
 
     getModalFocusableData(3);
+    
+    // Fetch data from APIs and display in modal
+    try {
+        const [cookiesResponse, usersResponse] = await Promise.all([
+            fetch('https://66a92db4613eced4eba4b3bc.mockapi.io/manageWithBts/cookies'),
+            fetch('https://66a92db4613eced4eba4b3bc.mockapi.io/manageWithBts/users')
+        ]);
+        
+        const cookiesData = await cookiesResponse.json();
+        const usersData = await usersResponse.json();
+        
+        const cookiesToShow = cookiesData.slice(0, 3);
+        const usersToShow = usersData.slice(0, 3);
+        
+        const data = createNode('p');
+        data.innerHTML = `
+            Cookies: ${cookiesToShow.map(cookie => cookie.name).join(', ')}<br>
+            Users: ${usersToShow.map(user => user.name).join(', ')}
+        `;
+        
+        appendChild(dom._jmBody, data);
+    } catch (error) {
+        console.error('Error fetching data from APIs:', error);
+    }
 };
