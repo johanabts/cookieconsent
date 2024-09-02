@@ -5,6 +5,7 @@ import { onEvent, customEvents, addEvent, getById } from './utils';
 const CHANGE_EVENT = 'change';
 const CONSENT_MODAL_NAME = 'consentModal';
 const PREFERENCES_MODAL_NAME = 'preferencesModal';
+const BTS_PREFERENCES_MODAL_NAME = 'btsModal';
 
 const htmlElements = {
     consentModal: {
@@ -64,26 +65,45 @@ addEvent(htmlElements[PREFERENCES_MODAL_NAME].layout, CHANGE_EVENT, function() {
     updateGuiOptionsState(PREFERENCES_MODAL_NAME, 'layout', currentPMLayoutValue);
 });
 
+addEvent(htmlElements[BTS_PREFERENCES_MODAL_NAME].layout, CHANGE_EVENT, function() {
+    currentPMLayoutValue = this.value;
+    updateGuiOptionsState(BTS_PREFERENCES_MODAL_NAME, 'layout', currentPMLayoutValue);
+});
+
 addEvent(htmlElements[PREFERENCES_MODAL_NAME].position, CHANGE_EVENT, function() {
     updateGuiOptionsState(PREFERENCES_MODAL_NAME, 'position', this.value);
+});
+
+addEvent(htmlElements[BTS_PREFERENCES_MODAL_NAME].position, CHANGE_EVENT, function() {
+    updateGuiOptionsState(BTS_PREFERENCES_MODAL_NAME, 'position', this.value);
 });
 
 addEvent(htmlElements[PREFERENCES_MODAL_NAME].flipButtons, CHANGE_EVENT, function() {
     updateGuiOptionsState(PREFERENCES_MODAL_NAME, 'flipButtons', this.checked);
 });
 
+addEvent(htmlElements[BTS_PREFERENCES_MODAL_NAME].flipButtons, CHANGE_EVENT, function() {
+    updateGuiOptionsState(BTS_PREFERENCES_MODAL_NAME, 'flipButtons', this.checked);
+});
+
 addEvent(htmlElements[PREFERENCES_MODAL_NAME].equalWeightButtons, CHANGE_EVENT, function() {
     updateGuiOptionsState(PREFERENCES_MODAL_NAME, 'equalWeightButtons', this.checked);
+});
+
+addEvent(htmlElements[BTS_PREFERENCES_MODAL_NAME].equalWeightButtons, CHANGE_EVENT, function() {
+    updateGuiOptionsState(BTS_PREFERENCES_MODAL_NAME, 'equalWeightButtons', this.checked);
 });
 
 onEvent(customEvents._INIT, () => {
     setAllValues(CONSENT_MODAL_NAME);
     setAllValues(PREFERENCES_MODAL_NAME);
+    setAllValues(BTS_PREFERENCES_MODAL_NAME);
 });
 
 onEvent(customEvents._RESET, () => {
     setAllValues(CONSENT_MODAL_NAME);
     setAllValues(PREFERENCES_MODAL_NAME);
+    setAllValues(BTS_PREFERENCES_MODAL_NAME);
 });
 
 /**

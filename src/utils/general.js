@@ -650,8 +650,7 @@ export const addDataButtonListeners = (elem, api, createPreferencesModal, create
         acceptAllElements = getElements(ACCEPT_PREFIX + 'all'),
         acceptNecessaryElements = getElements(ACCEPT_PREFIX + 'necessary'),
         acceptCustomElements = getElements(ACCEPT_PREFIX + 'custom'),
-        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration,
-        createBtsModalOnHover = globalObj._config.lazyHtmlGeneration;
+        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration;
 
     //{{START: GUI}}
     for (const el of showPreferencesModalElements) {
@@ -671,19 +670,6 @@ export const addDataButtonListeners = (elem, api, createPreferencesModal, create
             addEvent(el, 'focus', () => {
                 if (!globalObj._state._preferencesModalExists)
                     createPreferencesModal(api, createMainContainer);
-            });
-        }
-
-        if (createBtsModalOnHover) {
-            addEvent(el, 'mouseenter', (event) => {
-                preventDefault(event);
-                if (!globalObj._state._btsPreferencesModalExists)
-                    createBtsModal(api, createMainContainer);
-            }, true);
-
-            addEvent(el, 'focus', () => {
-                if (!globalObj._state._btsPreferencesModalExists)
-                    createBtsModal(api, createMainContainer);
             });
         }
     }
@@ -883,7 +869,7 @@ export const getFocusableElements = (root) => querySelectorAll(root, focusableTy
 /**
  * Save reference to first and last focusable elements inside each modal
  * to prevent losing focus while navigating with TAB
- * @param {1 | 2} [modalId]
+ * @param {1 | 2 | 3} [modalId]
  */
 export const getModalFocusableData = (modalId) => {
     const { _state, _dom } = globalObj;

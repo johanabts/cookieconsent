@@ -54,7 +54,6 @@ import { COOKIE_NAME, OPT_IN_MODE } from '../utils/constants';
  * @property {HTMLElement} _cmAcceptAllBtn
  * @property {HTMLElement} _cmAcceptNecessaryBtn
  * @property {HTMLElement} _cmShowPreferencesBtn
- * @property {HTMLElement} _cmShowMyBtn
  * @property {HTMLElement} _cmFooterLinksGroup
  * @property {HTMLElement} _cmCloseIconBtn
  *
@@ -81,6 +80,8 @@ import { COOKIE_NAME, OPT_IN_MODE } from '../utils/constants';
  * @property {HTMLElement} _jmAcceptAllBtn
  * @property {HTMLElement} _jmAcceptNecessaryBtn
  * @property {HTMLElement} _jmSavePreferencesBtn
+ * @property {HTMLElement} _jmShowMyBtn
+ * @property {HTMLElement} _jmBtnGroup3
  *
  * @property {Object.<string, HTMLInputElement>} _categoryCheckboxInputs
  * @property {Object.<string, ServiceToggle>} _serviceCheckboxInputs

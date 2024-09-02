@@ -132,7 +132,7 @@ export const createConsentModal = (api, createMainContainer) => {
 
         appendChild(dom._cmBody, dom._cmTexts);
 
-        if (acceptAllBtnData || acceptNecessaryBtnData || showPreferencesBtnData)
+        if (acceptAllBtnData || acceptNecessaryBtnData || showPreferencesBtnData || showMyBtnTitle)
             appendChild(dom._cmBody, dom._cmBtns);
 
         dom._cmDivTabindex = createNode(DIV_TAG);
@@ -225,14 +225,14 @@ export const createConsentModal = (api, createMainContainer) => {
     }
 
     if (showMyBtnTitle) {
-        if (!dom._cmShowMyBtn) {
-            dom._cmShowMyBtn = createNode(BUTTON_TAG);
-            appendChild(dom._cmShowMyBtn, createFocusSpan());
-            addClassCm(dom._cmShowMyBtn, 'btn');
-            addClassCm(dom._cmShowMyBtn, 'btn--secondary');
-            setAttribute(dom._cmShowMyBtn, DATA_ROLE, 'show');
+        if (!dom._jmShowMyBtn) {
+            dom._jmShowMyBtn = createNode(BUTTON_TAG);
+            appendChild(dom._jmShowMyBtn, createFocusSpan());
+            addClassCm(dom._jmShowMyBtn, 'btn');
+            addClassCm(dom._jmShowMyBtn, 'btn--secondary');
+            setAttribute(dom._jmShowMyBtn, DATA_ROLE, 'show');
 
-            addEvent(dom._cmShowMyBtn, CLICK_EVENT, () => {
+            addEvent(dom._jmShowMyBtn, CLICK_EVENT, () => {
                 if (!state._btsPreferencesModalExists){
                     createBtsModal(api, createMainContainer);
                 }
@@ -240,7 +240,7 @@ export const createConsentModal = (api, createMainContainer) => {
             });
         }
 
-        dom._cmShowMyBtn.firstElementChild.innerHTML = showMyBtnTitle;
+        dom._jmShowMyBtn.firstElementChild.innerHTML = showMyBtnTitle;
     }
 
     if (!dom._cmBtnGroup) {
@@ -267,11 +267,11 @@ export const createConsentModal = (api, createMainContainer) => {
         }
     }
 
-    if (dom._cmShowMyBtn && !dom._cmBtnGroup3) {
-        dom._cmBtnGroup3 = createNode(DIV_TAG);
-        addClassCm(dom._cmBtnGroup3, BTN_GROUP_CLASS);
-        appendChild(dom._cmBtnGroup3, dom._cmShowMyBtn);
-        appendChild(dom._cmBtns, dom._cmBtnGroup3);
+    if (dom._jmShowMyBtn && !dom._jmBtnGroup3) {
+        dom._jmBtnGroup3 = createNode(DIV_TAG);
+        addClassCm(dom._jmBtnGroup3, BTN_GROUP_CLASS);
+        appendChild(dom._jmBtnGroup3, dom._jmShowMyBtn);
+        appendChild(dom._cmBtns, dom._jmBtnGroup3);
     }
 
     if (footerData) {

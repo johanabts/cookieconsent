@@ -2,6 +2,7 @@ import { DIV_TAG, CLICK_EVENT, ARIA_HIDDEN, BUTTON_TAG, BTS_PREFERENCES_MODAL_NA
 import { addClass, appendChild, getModalFocusableData, debug, fireEvent, createNode, addEvent, setAttribute, addClassPm, getSvgIcon, handleFocusTrap } from '../../utils/general';
 import { guiManager } from '../../utils/gui-manager';
 import { globalObj } from '../global';
+import QRCode from 'qrcode';
 
 /**
  * Generates custom modal and appends it to "cc-main" el.
@@ -14,8 +15,7 @@ export const createBtsModal = async (api, createMainContainer) => {
 
     const {hideBtsPreferences} = api;
 
-    const btsPreferencesModalTitle = 'Manage preferences with BTS',
-        btsPreferencesModalDescription = 'BTS preferences center';
+    const btsPreferencesModalTitle = 'Manage preferences with BTS';
 
     if(!dom._jmContainer) {
         dom._jmContainer = createNode(DIV_TAG);
@@ -79,10 +79,6 @@ export const createBtsModal = async (api, createMainContainer) => {
         dom._jmTitle.innerHTML = btsPreferencesModalTitle;
     }
 
-    if (btsPreferencesModalDescription) {
-        dom._jmBody.innerHTML = `${btsPreferencesModalDescription}<br>`;
-    }
-
     if (dom._jmNewBody) {
         dom._jm.replaceChild(dom._jmNewBody, dom._jmBody);
         dom._jmBody = dom._jmNewBody;
@@ -118,16 +114,21 @@ export const createBtsModal = async (api, createMainContainer) => {
         const cookiesData = await cookiesResponse.json();
         const usersData = await usersResponse.json();
         
-        const cookiesToShow = cookiesData.slice(0, 3);
-        const usersToShow = usersData.slice(0, 3);
-        
-        const data = createNode('p');
-        data.innerHTML = `
-            Cookies: ${cookiesToShow.map(cookie => cookie.name).join(', ')}<br>
-            Users: ${usersToShow.map(user => user.name).join(', ')}
+        const dataString = `
+            Cookies: ${cookiesData.map(cookie => cookie.name).join(', ')}\n
+            Users: ${usersData.map(user => user.name).join(', ')}
         `;
         
-        appendChild(dom._jmBody, data);
+        const qrCodeCanvas = createNode('canvas');
+        await QRCode.toCanvas(qrCodeCanvas, dataString);
+
+        // Style the QR code
+        qrCodeCanvas.style.width = '400px';
+        qrCodeCanvas.style.height = '400px';
+        qrCodeCanvas.style.display = 'block';
+        qrCodeCanvas.style.margin = '0 auto';
+        
+        appendChild(dom._jmBody, qrCodeCanvas);
     } catch (error) {
         console.error('Error fetching data from APIs:', error);
     }

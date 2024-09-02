@@ -5,6 +5,8 @@
 * Released under the MIT License
 */
 
+import QRCode from 'qrcode';
+
 const COOKIE_NAME = 'cc_cookie';
 
 const OPT_IN_MODE = 'opt-in';
@@ -83,7 +85,6 @@ const BTS_PREFERENCES_MODAL_NAME = 'btsModal';
  * @property {HTMLElement} _cmAcceptAllBtn
  * @property {HTMLElement} _cmAcceptNecessaryBtn
  * @property {HTMLElement} _cmShowPreferencesBtn
- * @property {HTMLElement} _cmShowMyBtn
  * @property {HTMLElement} _cmFooterLinksGroup
  * @property {HTMLElement} _cmCloseIconBtn
  *
@@ -110,6 +111,8 @@ const BTS_PREFERENCES_MODAL_NAME = 'btsModal';
  * @property {HTMLElement} _jmAcceptAllBtn
  * @property {HTMLElement} _jmAcceptNecessaryBtn
  * @property {HTMLElement} _jmSavePreferencesBtn
+ * @property {HTMLElement} _jmShowMyBtn
+ * @property {HTMLElement} _jmBtnGroup3
  *
  * @property {Object.<string, HTMLInputElement>} _categoryCheckboxInputs
  * @property {Object.<string, ServiceToggle>} _serviceCheckboxInputs
@@ -1032,8 +1035,7 @@ const addDataButtonListeners = (elem, api, createPreferencesModal, createBtsModa
         acceptAllElements = getElements(ACCEPT_PREFIX + 'all'),
         acceptNecessaryElements = getElements(ACCEPT_PREFIX + 'necessary'),
         acceptCustomElements = getElements(ACCEPT_PREFIX + 'custom'),
-        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration,
-        createBtsModalOnHover = globalObj._config.lazyHtmlGeneration;
+        createPreferencesModalOnHover = globalObj._config.lazyHtmlGeneration;
 
     //{{START: GUI}}
     for (const el of showPreferencesModalElements) {
@@ -1053,19 +1055,6 @@ const addDataButtonListeners = (elem, api, createPreferencesModal, createBtsModa
             addEvent(el, 'focus', () => {
                 if (!globalObj._state._preferencesModalExists)
                     createPreferencesModal(api, createMainContainer);
-            });
-        }
-
-        if (createBtsModalOnHover) {
-            addEvent(el, 'mouseenter', (event) => {
-                preventDefault(event);
-                if (!globalObj._state._btsPreferencesModalExists)
-                    createBtsModal(api, createMainContainer);
-            }, true);
-
-            addEvent(el, 'focus', () => {
-                if (!globalObj._state._btsPreferencesModalExists)
-                    createBtsModal(api, createMainContainer);
             });
         }
     }
@@ -1265,7 +1254,7 @@ const getFocusableElements = (root) => querySelectorAll(root, focusableTypesSele
 /**
  * Save reference to first and last focusable elements inside each modal
  * to prevent losing focus while navigating with TAB
- * @param {1 | 2} [modalId]
+ * @param {1 | 2 | 3} [modalId]
  */
 const getModalFocusableData = (modalId) => {
     const { _state, _dom } = globalObj;
@@ -2370,8 +2359,7 @@ const createBtsModal = async (api, createMainContainer) => {
 
     const {hideBtsPreferences} = api;
 
-    const btsPreferencesModalTitle = 'Manage preferences with BTS',
-        btsPreferencesModalDescription = 'BTS preferences center';
+    const btsPreferencesModalTitle = 'Manage preferences with BTS';
 
     if(!dom._jmContainer) {
         dom._jmContainer = createNode(DIV_TAG);
@@ -2435,10 +2423,6 @@ const createBtsModal = async (api, createMainContainer) => {
         dom._jmTitle.innerHTML = btsPreferencesModalTitle;
     }
 
-    {
-        dom._jmBody.innerHTML = `${btsPreferencesModalDescription}<br>`;
-    }
-
     if (dom._jmNewBody) {
         dom._jm.replaceChild(dom._jmNewBody, dom._jmBody);
         dom._jmBody = dom._jmNewBody;
@@ -2474,16 +2458,21 @@ const createBtsModal = async (api, createMainContainer) => {
         const cookiesData = await cookiesResponse.json();
         const usersData = await usersResponse.json();
         
-        const cookiesToShow = cookiesData.slice(0, 3);
-        const usersToShow = usersData.slice(0, 3);
-        
-        const data = createNode('p');
-        data.innerHTML = `
-            Cookies: ${cookiesToShow.map(cookie => cookie.name).join(', ')}<br>
-            Users: ${usersToShow.map(user => user.name).join(', ')}
+        const dataString = `
+            Cookies: ${cookiesData.map(cookie => cookie.name).join(', ')}\n
+            Users: ${usersData.map(user => user.name).join(', ')}
         `;
         
-        appendChild(dom._jmBody, data);
+        const qrCodeCanvas = createNode('canvas');
+        await QRCode.toCanvas(qrCodeCanvas, dataString);
+
+        // Style the QR code
+        qrCodeCanvas.style.width = '400px';
+        qrCodeCanvas.style.height = '400px';
+        qrCodeCanvas.style.display = 'block';
+        qrCodeCanvas.style.margin = '0 auto';
+        
+        appendChild(dom._jmBody, qrCodeCanvas);
     } catch (error) {
         console.error('Error fetching data from APIs:', error);
     }
@@ -2592,7 +2581,7 @@ const createConsentModal = (api, createMainContainer) => {
 
         appendChild(dom._cmBody, dom._cmTexts);
 
-        if (acceptAllBtnData || acceptNecessaryBtnData || showPreferencesBtnData)
+        if (acceptAllBtnData || acceptNecessaryBtnData || showPreferencesBtnData || showMyBtnTitle)
             appendChild(dom._cmBody, dom._cmBtns);
 
         dom._cmDivTabindex = createNode(DIV_TAG);
@@ -2685,14 +2674,14 @@ const createConsentModal = (api, createMainContainer) => {
     }
 
     {
-        if (!dom._cmShowMyBtn) {
-            dom._cmShowMyBtn = createNode(BUTTON_TAG);
-            appendChild(dom._cmShowMyBtn, createFocusSpan());
-            addClassCm(dom._cmShowMyBtn, 'btn');
-            addClassCm(dom._cmShowMyBtn, 'btn--secondary');
-            setAttribute(dom._cmShowMyBtn, DATA_ROLE, 'show');
+        if (!dom._jmShowMyBtn) {
+            dom._jmShowMyBtn = createNode(BUTTON_TAG);
+            appendChild(dom._jmShowMyBtn, createFocusSpan());
+            addClassCm(dom._jmShowMyBtn, 'btn');
+            addClassCm(dom._jmShowMyBtn, 'btn--secondary');
+            setAttribute(dom._jmShowMyBtn, DATA_ROLE, 'show');
 
-            addEvent(dom._cmShowMyBtn, CLICK_EVENT, () => {
+            addEvent(dom._jmShowMyBtn, CLICK_EVENT, () => {
                 if (!state._btsPreferencesModalExists){
                     createBtsModal(api, createMainContainer);
                 }
@@ -2700,7 +2689,7 @@ const createConsentModal = (api, createMainContainer) => {
             });
         }
 
-        dom._cmShowMyBtn.firstElementChild.innerHTML = showMyBtnTitle;
+        dom._jmShowMyBtn.firstElementChild.innerHTML = showMyBtnTitle;
     }
 
     if (!dom._cmBtnGroup) {
@@ -2727,11 +2716,11 @@ const createConsentModal = (api, createMainContainer) => {
         }
     }
 
-    if (dom._cmShowMyBtn && !dom._cmBtnGroup3) {
-        dom._cmBtnGroup3 = createNode(DIV_TAG);
-        addClassCm(dom._cmBtnGroup3, BTN_GROUP_CLASS);
-        appendChild(dom._cmBtnGroup3, dom._cmShowMyBtn);
-        appendChild(dom._cmBtns, dom._cmBtnGroup3);
+    if (dom._jmShowMyBtn && !dom._jmBtnGroup3) {
+        dom._jmBtnGroup3 = createNode(DIV_TAG);
+        addClassCm(dom._jmBtnGroup3, BTN_GROUP_CLASS);
+        appendChild(dom._jmBtnGroup3, dom._jmShowMyBtn);
+        appendChild(dom._cmBtns, dom._jmBtnGroup3);
     }
 
     if (footerData) {
